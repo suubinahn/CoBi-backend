@@ -93,7 +93,7 @@ def extract_inputs_from_derived(logic_ir: LogicIR) -> list[str]:
 async def generate_logic_ir(code: str, language: str) -> LogicIR:
     user_prompt = build_logic_ir_user_prompt(code, language)
 
-    for attempt in range(2):  # 🔥 1회 재시도
+    for attempt in range(2):  # 1회 재시도
         try:
             response = await call_llm(
                 system_prompt=LOGIC_IR_SYSTEM_PROMPT,
