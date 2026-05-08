@@ -37,6 +37,28 @@ http://127.0.0.1:8000/docs
 
 ---
 
+# **Deployment**
+
+## **Render Backend URL**
+
+```text
+https://cobi-backend-k8ff.onrender.com
+```
+
+## **Production API Endpoint**
+
+```text
+POST https://cobi-backend-k8ff.onrender.com/api/analyze
+```
+
+## **Frontend Connection Example**
+
+```javascript
+fetch("https://cobi-backend-k8ff.onrender.com/api/analyze")
+```
+
+---
+
 # API
 
 ## POST `/api/analyze`
@@ -137,3 +159,4 @@ OPENAI_API_KEY=your_api_key
 - Mermaid 렌더링은 frontend에서 처리
 - OpenAI API KEY 필요
 - Swagger Docs 지원
+- **Render 배포 서버 기준으로 frontend(Vercel)와 연결**
