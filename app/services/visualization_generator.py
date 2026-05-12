@@ -12,6 +12,7 @@ def safe_text(text: str) -> str:
 
 
 def prettify_result(raw_result: str) -> str:
+
     raw_result = raw_result.lower()
 
     if "login required" in raw_result:
@@ -35,6 +36,12 @@ def prettify_result(raw_result: str) -> str:
     elif "user not found" in raw_result:
         return "사용자 없음"
 
+    elif "blocked user" in raw_result:
+        return "차단 사용자"
+
+    elif "out of stock" in raw_result:
+        return "재고 부족"
+
     elif "error" in raw_result:
         return "오류"
 
@@ -46,13 +53,28 @@ def prettify_result(raw_result: str) -> str:
 
 def get_result_class(result: str) -> str:
 
-    if result in ["로그인 필요", "잘못된 금액", "오류", "비밀번호 불일치", "삭제 불가", "사용자 없음"]:
+    if result in [
+        "로그인 필요",
+        "잘못된 금액",
+        "오류",
+        "비밀번호 불일치",
+        "삭제 불가",
+        "사용자 없음",
+        "차단 사용자"
+    ]:
         return "errorNode"
 
-    elif result in ["승인 대기", "대기"]:
+    elif result in [
+        "승인 대기",
+        "대기"
+    ]:
         return "pendingNode"
 
-    elif result in ["주문 완료"]:
+    elif result in [
+        "주문 완료",
+        "재고 부족",
+        "결과"
+    ]:
         return "successNode"
 
     return "defaultNode"
@@ -69,10 +91,10 @@ def generate_flowchart(logic_ir):
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
-        # 사용자 친화적 조건 설명
-        condition = safe_text(branch.plain_meaning)
+        condition = safe_text(
+            branch.plain_meaning
+        )
 
-        # 결과 상태 한글화
         result = prettify_result(
             safe_text(branch.result)
         )
@@ -89,17 +111,20 @@ def generate_flowchart(logic_ir):
             f'{res_node}["{result}"]'
         )
 
-        # 흐름 연결
+        # 시작 연결
         if i == 0:
-            lines.append(f"START --> {cond_node}")
-        else:
             lines.append(
-                f"C{i-1} -->|False| {cond_node}"
+                f"START --> {cond_node}"
             )
 
-        # True 분기
+        else:
+            lines.append(
+                f"C{i-1} -->|No| {cond_node}"
+            )
+
+        # Yes 분기
         lines.append(
-            f"{cond_node} -->|True| {res_node}"
+            f"{cond_node} -->|Yes| {res_node}"
         )
 
         # 결과 → END
@@ -112,16 +137,18 @@ def generate_flowchart(logic_ir):
             f"class {res_node} {result_class}"
         )
 
-    # 마지막 False → END
+    # 마지막 No → END
     if logic_ir.branches:
+
         last_cond = f"C{len(logic_ir.branches)-1}"
+
         lines.append(
-            f"{last_cond} -->|False| END"
+            f"{last_cond} -->|No| END"
         )
 
     lines.append("END([END])")
 
-    # Mermaid 스타일 정의
+    # 스타일 정의
     lines.append(
         "classDef errorNode fill:#7f1d1d,stroke:#f87171,color:#ffffff,stroke-width:2px"
     )
@@ -159,14 +186,21 @@ def generate_state_diagram(logic_ir):
             safe_text(branch.result)
         )
 
+        # Mermaid state safe 처리
+        safe_result = result.replace(" ", "_")
+
+        # 상태 전이
         lines.append(
-            f'Decision --> "{result}" : {condition}'
+            f"Decision --> {safe_result} : {condition}"
         )
 
-        added_states.add(result)
+        added_states.add(safe_result)
 
     for state in added_states:
-        lines.append(f'"{state}" --> [*]')
+
+        lines.append(
+            f"{state} --> [*]"
+        )
 
     return "\n".join(lines)
 
@@ -174,6 +208,7 @@ def generate_state_diagram(logic_ir):
 def generate_visualizations(logic_ir):
 
     return {
+
         "flowchart": {
             "title": "조건 분기 흐름도",
             "type": "flowchart",
