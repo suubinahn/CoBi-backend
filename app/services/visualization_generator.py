@@ -10,17 +10,36 @@ def safe_text(text: str) -> str:
     )
 
 
+def prettify_result(raw_result: str) -> str:
+    raw_result = raw_result.lower()
+
+    if "error" in raw_result:
+        return "오류"
+    elif "pending" in raw_result:
+        return "승인 대기"
+    elif "success" in raw_result:
+        return "완료"
+    elif "soldout" in raw_result:
+        return "재고 부족"
+
+    return "결과"
+
+
 def generate_flowchart(logic_ir):
     lines = ["flowchart TD"]
     lines.append("START([START])")
 
-    # 조건 분기 생성
     for i, branch in enumerate(logic_ir.branches):
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
-        condition = safe_text(branch.condition)
-        result = safe_text(branch.result)
+        # 사용자 친화적 조건 설명 사용
+        condition = safe_text(branch.plain_meaning)
+
+        # 상태 결과 한글화
+        result = prettify_result(
+            safe_text(branch.result)
+        )
 
         lines.append(f"{cond_node}{{{condition}}}")
         lines.append(f"{res_node}[{result}]")
@@ -50,18 +69,14 @@ def generate_state_diagram(logic_ir):
     added_states = set()
 
     for branch in logic_ir.branches:
-        condition = safe_text(branch.condition)[:40]
 
-        raw_result = safe_text(branch.result).lower()
+        # 사용자 친화적 조건 설명 사용
+        condition = safe_text(branch.plain_meaning)
 
-        if "error" in raw_result:
-            result = "Error"
-        elif "pending" in raw_result:
-            result = "Pending"
-        elif "success" in raw_result:
-            result = "Success"
-        else:
-            result = "Result"
+        # 상태 결과 한글화
+        result = prettify_result(
+            safe_text(branch.result)
+        )
 
         lines.append(
             f"Decision --> {result} : {condition}"
