@@ -21,6 +21,17 @@ LOGIC_IR_SYSTEM_PROMPT = """
 - branch.condition_var: 조건에서 검사하는 변수/상태의 이름만 추출한다 (문장 금지, 명사 또는 짧은 명사구).
 - branch.true_label: 조건이 참일 때의 값이나 상태를 간결하게 표현한다 (2~5자, 문장 금지).
 - branch.false_label: 조건이 거짓일 때의 값이나 상태를 간결하게 표현한다 (2~5자, 문장 금지).
+- branch.state_name:
+  사용자가 이해하기 쉬운 상태 이름 생성
+  (예: "로그인 확인", "결제 확인")
+- branch.ui_message:
+  사용자에게 보여줄 메시지 생성
+- branch.severity:
+  상태 중요도
+  ("success", "warning", "error", "info")
+- branch.transition_label:
+  상태 이동 이름
+  (예: "로그인 성공", "결제 완료")
 
 summary 규칙:
 - summary는 코드 설명이 아니라 "로직의 결정 구조"를 요약한다.
@@ -77,6 +88,10 @@ def build_logic_ir_user_prompt(code: str, language: str) -> str:
       "condition": "...",
       "result": "...",
       "plain_meaning": "...",
+      "state_name": "사용자 친화적 상태 이름",
+      "ui_message": "...",
+      "severity": "...",
+      "transition_label": "..."
       "condition_var": "조건 대상 변수명 또는 상태명 (예: '사용자 ID', '주문금액', '재고')",
       "true_label": "조건이 참일 때의 값/상태 표현 (예: '없음', '0이하', '부족', '미로그인')",
       "false_label": "조건이 거짓일 때의 값/상태 표현 (예: '있음', '0초과', '충분', '로그인됨')"
