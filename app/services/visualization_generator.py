@@ -1,4 +1,4 @@
-def safe_text(text: str) -> str:
+def safe_text(text: str):
     if not text:
         return ""
 
@@ -11,7 +11,7 @@ def safe_text(text: str) -> str:
     )
 
 
-def prettify_result(raw_result: str) -> str:
+def prettify_result(raw_result: str):
 
     raw_result = raw_result.lower()
 
@@ -60,7 +60,7 @@ def prettify_result(raw_result: str) -> str:
     return "결과"
 
 
-def get_result_class(result: str) -> str:
+def get_result_class(result: str):
 
     if result in [
         "로그인 필요",
@@ -95,7 +95,6 @@ def generate_flowchart(logic_ir):
 
     lines = ["flowchart TD"]
 
-    # 시작 노드
     lines.append("START([Start])")
 
     for i, branch in enumerate(logic_ir.branches):
@@ -103,7 +102,6 @@ def generate_flowchart(logic_ir):
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
-        # 조건 노드 텍스트: condition_var 우선, 없으면 plain_meaning fallback
         condition_label = safe_text(
             branch.condition_var if branch.condition_var else branch.plain_meaning
         )
@@ -136,11 +134,12 @@ def generate_flowchart(logic_ir):
 
         else:
             prev_false = safe_text(logic_ir.branches[i-1].false_label) or "NO"
+
             lines.append(
                 f"C{i-1} -->|{prev_false}| {cond_node}"
             )
 
-        # 참 분기 → 결과
+        # YES → 결과
         lines.append(
             f"{cond_node} -->|{true_edge}| {res_node}"
         )
@@ -155,31 +154,27 @@ def generate_flowchart(logic_ir):
             f"class {res_node} {result_class}"
         )
 
-    # 마지막 거짓 분기 → END
+    # 마지막 NO → 정상 처리
     if logic_ir.branches:
 
         last_cond = f"C{len(logic_ir.branches)-1}"
-        last_false = safe_text(logic_ir.branches[-1].false_label) or "NO"
-
-        success_node = "SUCCESS"
 
         lines.append(
-            f'{success_node}["정상 처리"]'
+            'SUCCESS["정상 처리"]'
         )
 
         lines.append(
-            f"{last_cond} -->|No| {success_node}"
+            f"{last_cond} -->|NO| SUCCESS"
         )
 
         lines.append(
-            f"{success_node} --> END"
+            "SUCCESS --> END"
         )
 
         lines.append(
-            f"{last_cond} -->|{last_false}| END"
+            "class SUCCESS successNode"
         )
 
-    # 종료 노드
     lines.append("END([End])")
 
     # 스타일 정의
@@ -202,20 +197,22 @@ def generate_flowchart(logic_ir):
     return "\n".join(lines)
 
 
+# =========================================================
+# generate_state_diagram 전체 교체
+# =========================================================
+
 def generate_state_diagram(logic_ir):
 
     lines = ["stateDiagram-v2"]
 
-    lines.append("[*] --> Decision")
+    # 시작 상태
+    lines.append("[*] --> STEP_0")
 
-    added_states = set()
+    for i, branch in enumerate(logic_ir.branches):
 
-    for branch in logic_ir.branches:
+        current_state = f"STEP_{i}"
 
-        # 상태 다이어그램 레이블: "변수명 [참조건값]" 형태
-        cond_var = safe_text(branch.condition_var) if branch.condition_var else ""
-        true_lbl = safe_text(branch.true_label) or "YES"
-        condition_label = f"{cond_var} [{true_lbl}]" if cond_var else safe_text(branch.plain_meaning)
+        next_state = f"STEP_{i+1}"
 
         result = prettify_result(
             safe_text(branch.result)
@@ -223,17 +220,58 @@ def generate_state_diagram(logic_ir):
 
         safe_result = result.replace(" ", "_")
 
-        lines.append(
-            f"Decision --> {safe_result} : {condition_label}"
+        # 조건 이름 간결하게
+        condition_label = safe_text(
+            branch.condition_var
+            if branch.condition_var
+            else branch.plain_meaning
         )
 
-        added_states.add(safe_result)
+        true_label = safe_text(branch.true_label) or "YES"
+        false_label = safe_text(branch.false_label) or "NO"
 
-    for state in added_states:
+        # =================================================
+        # 현재 단계 state 이름 추가
+        # =================================================
 
         lines.append(
-            f"{state} --> [*]"
+            f'state "{condition_label}" as {current_state}'
         )
+
+        # =================================================
+        # YES → 결과 상태
+        # =================================================
+
+        lines.append(
+            f'{current_state} --> {safe_result} : {true_label}'
+        )
+
+        # 결과 종료
+        lines.append(
+            f"{safe_result} --> [*]"
+        )
+
+        # =================================================
+        # 마지막 분기인지 체크
+        # =================================================
+
+        if i < len(logic_ir.branches) - 1:
+
+            # NO → 다음 단계
+            lines.append(
+                f'{current_state} --> {next_state} : {false_label}'
+            )
+
+        else:
+
+            # 마지막 NO → 정상 처리
+            lines.append(
+                f'{current_state} --> 정상처리 : {false_label}'
+            )
+
+            lines.append(
+                "정상처리 --> [*]"
+            )
 
     return "\n".join(lines)
 
