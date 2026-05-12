@@ -18,6 +18,9 @@ LOGIC_IR_SYSTEM_PROMPT = """
 - state: 외부 입력 또는 상태값만 포함한다.
 - derived_values: 계산된 값 또는 조건 결과를 표현한다.
 - branch: 반드시 condition과 result를 포함한다.
+- branch.condition_var: 조건에서 검사하는 변수/상태의 이름만 추출한다 (문장 금지, 명사 또는 짧은 명사구).
+- branch.true_label: 조건이 참일 때의 값이나 상태를 간결하게 표현한다 (2~5자, 문장 금지).
+- branch.false_label: 조건이 거짓일 때의 값이나 상태를 간결하게 표현한다 (2~5자, 문장 금지).
 
 summary 규칙:
 - summary는 코드 설명이 아니라 "로직의 결정 구조"를 요약한다.
@@ -73,7 +76,10 @@ def build_logic_ir_user_prompt(code: str, language: str) -> str:
     {{
       "condition": "...",
       "result": "...",
-      "plain_meaning": "..."
+      "plain_meaning": "...",
+      "condition_var": "조건 대상 변수명 또는 상태명 (예: '사용자 ID', '주문금액', '재고')",
+      "true_label": "조건이 참일 때의 값/상태 표현 (예: '없음', '0이하', '부족', '미로그인')",
+      "false_label": "조건이 거짓일 때의 값/상태 표현 (예: '있음', '0초과', '충분', '로그인됨')"
     }}
   ],
 

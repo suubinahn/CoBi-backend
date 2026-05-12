@@ -91,9 +91,13 @@ def generate_flowchart(logic_ir):
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
-        condition = safe_text(
-            branch.plain_meaning
+        # 조건 노드 텍스트: condition_var 우선, 없으면 plain_meaning fallback
+        condition_label = safe_text(
+            branch.condition_var if branch.condition_var else branch.plain_meaning
         )
+
+        true_edge = safe_text(branch.true_label) or "YES"
+        false_edge = safe_text(branch.false_label) or "NO"
 
         result = prettify_result(
             safe_text(branch.result)
@@ -103,7 +107,7 @@ def generate_flowchart(logic_ir):
 
         # 조건 노드
         lines.append(
-            f'{cond_node}{{"{condition}"}}'
+            f'{cond_node}{{"{condition_label}"}}'
         )
 
         # 결과 노드
@@ -118,13 +122,14 @@ def generate_flowchart(logic_ir):
             )
 
         else:
+            prev_false = safe_text(logic_ir.branches[i-1].false_label) or "NO"
             lines.append(
-                f"C{i-1} -->|No| {cond_node}"
+                f"C{i-1} -->|{prev_false}| {cond_node}"
             )
 
-        # Yes 분기
+        # 참 분기 → 결과
         lines.append(
-            f"{cond_node} -->|Yes| {res_node}"
+            f"{cond_node} -->|{true_edge}| {res_node}"
         )
 
         # 결과 → END
@@ -137,13 +142,14 @@ def generate_flowchart(logic_ir):
             f"class {res_node} {result_class}"
         )
 
-    # 마지막 No → END
+    # 마지막 거짓 분기 → END
     if logic_ir.branches:
 
         last_cond = f"C{len(logic_ir.branches)-1}"
+        last_false = safe_text(logic_ir.branches[-1].false_label) or "NO"
 
         lines.append(
-            f"{last_cond} -->|No| END"
+            f"{last_cond} -->|{last_false}| END"
         )
 
     lines.append("END([END])")
@@ -178,9 +184,10 @@ def generate_state_diagram(logic_ir):
 
     for branch in logic_ir.branches:
 
-        condition = safe_text(
-            branch.plain_meaning
-        )
+        # 상태 다이어그램 레이블: "변수명 [참조건값]" 형태
+        cond_var = safe_text(branch.condition_var) if branch.condition_var else ""
+        true_lbl = safe_text(branch.true_label) or "YES"
+        condition_label = f"{cond_var} [{true_lbl}]" if cond_var else safe_text(branch.plain_meaning)
 
         result = prettify_result(
             safe_text(branch.result)
@@ -191,7 +198,7 @@ def generate_state_diagram(logic_ir):
 
         # 상태 전이
         lines.append(
-            f"Decision --> {safe_result} : {condition}"
+            f"Decision --> {safe_result} : {condition_label}"
         )
 
         added_states.add(safe_result)
