@@ -69,8 +69,6 @@ def build_logic_ir_user_prompt(code: str, language: str) -> str:
     }}
   ],
 
-  "inputs": ["..."],
-
   "branches": [
     {{
       "condition": "...",

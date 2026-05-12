@@ -16,7 +16,7 @@ class DerivedValue(BaseModel):
 
 class Branch(BaseModel):
     condition: str
-    result: str
+    result: str | bool | int | float
     plain_meaning: str
 
 
