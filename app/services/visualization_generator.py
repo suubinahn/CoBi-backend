@@ -227,23 +227,46 @@ def generate_state_diagram(logic_ir):
             branch.state_name
         ) or f"상태{i}"
 
-        safe_state = state_name.replace(" ", "_")
+        safe_state = f"STATE_{i}"
+
+        # =================================================
+        # [수정]
+        # 사용자 표시용 state label
+        # =================================================
+
+        lines.append(
+            f'state "{state_name}" as {safe_state}'
+        )
 
         # =================================================
         # [수정]
         # ui_message 사용
         # =================================================
 
-        result = safe_text(
+        result_label = safe_text(
             branch.ui_message
         )
 
-        if not result:
-            result = prettify_result(
+        if not result_label:
+            result_label = prettify_result(
                 safe_text(branch.result)
             )
 
-        safe_result = result.replace(" ", "_")
+        # =================================================
+        # [수정]
+        # Mermaid 내부용 ID 분리
+        # =================================================
+
+        safe_result = f"RESULT_{i}"
+
+        # =================================================
+        # [수정]
+        # 사용자 표시용 결과 state label
+        # =================================================
+
+        lines.append(
+            f'state "{result_label}" as {safe_result}'
+        )
 
         # =================================================
         # 이전 상태 → 현재 상태
@@ -278,11 +301,15 @@ def generate_state_diagram(logic_ir):
         if i == len(logic_ir.branches) - 1:
 
             lines.append(
-                f"{safe_state} --> 정상처리 : 성공"
+                'state "정상 처리" as SUCCESS'
             )
 
             lines.append(
-                "정상처리 --> [*]"
+                f"{safe_state} --> SUCCESS : 성공"
+            )
+
+            lines.append(
+                "SUCCESS --> [*]"
             )
 
         previous_state = safe_state
