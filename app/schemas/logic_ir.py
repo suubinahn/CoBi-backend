@@ -1,10 +1,11 @@
-from pydantic import BaseModel
-from typing import List
+import json
+from pydantic import BaseModel, field_validator
+from typing import Any, List
 
 
 class State(BaseModel):
     name: str
-    initial: bool | int | float | str
+    initial: bool | int | float | str | None
     meaning: str
 
 
@@ -16,8 +17,15 @@ class DerivedValue(BaseModel):
 
 class Branch(BaseModel):
     condition: str
-    result: str | bool | int | float
+    result: Any
     plain_meaning: str
+
+    @field_validator("result", mode="before")
+    @classmethod
+    def serialize_complex_result(cls, v: Any) -> str | bool | int | float:
+        if isinstance(v, (dict, list)):
+            return json.dumps(v, ensure_ascii=False)
+        return v
 
 
 class LogicIR(BaseModel):

@@ -138,4 +138,4 @@ async def generate_logic_ir(code: str, language: str) -> LogicIR:
             print("ERROR:\n", repr(e))
 
             if attempt == 1:
-                raise ValueError("Logic IR 생성 실패 (JSON 파싱 오류)") from e
+                raise ValueError(f"Logic IR 생성 실패: {type(e).__name__}: {e}") from e
