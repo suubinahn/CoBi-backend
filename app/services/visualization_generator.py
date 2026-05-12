@@ -50,8 +50,18 @@ def generate_state_diagram(logic_ir):
     added_states = set()
 
     for branch in logic_ir.branches:
-        condition = safe_text(branch.condition)
-        result = safe_text(branch.result).capitalize()
+        condition = safe_text(branch.condition)[:40]
+
+        raw_result = safe_text(branch.result).lower()
+
+        if "error" in raw_result:
+            result = "Error"
+        elif "pending" in raw_result:
+            result = "Pending"
+        elif "success" in raw_result:
+            result = "Success"
+        else:
+            result = "Result"
 
         lines.append(
             f"Decision --> {result} : {condition}"
