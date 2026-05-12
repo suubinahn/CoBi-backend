@@ -95,6 +95,7 @@ def generate_flowchart(logic_ir):
 
     lines = ["flowchart TD"]
 
+    # 시작 노드
     lines.append("START([Start])")
 
     for i, branch in enumerate(logic_ir.branches):
@@ -102,32 +103,13 @@ def generate_flowchart(logic_ir):
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
-        # 조건 라벨
+        # 조건 노드 텍스트: condition_var 우선, 없으면 plain_meaning fallback
         condition_label = safe_text(
-            branch.condition_var
-            if hasattr(branch, "condition_var") and branch.condition_var
-            else branch.plain_meaning
+            branch.condition_var if branch.condition_var else branch.plain_meaning
         )
 
-        # 긴 조건 자동 줄바꿈
-        if len(condition_label) > 16:
-            condition_label = (
-                condition_label[:16]
-                + "<br/>"
-                + condition_label[16:]
-            )
-
-        true_edge = (
-            safe_text(branch.true_label)
-            if hasattr(branch, "true_label")
-            else "YES"
-        ) or "YES"
-
-        false_edge = (
-            safe_text(branch.false_label)
-            if hasattr(branch, "false_label")
-            else "NO"
-        ) or "NO"
+        true_edge = safe_text(branch.true_label) or "YES"
+        false_edge = safe_text(branch.false_label) or "NO"
 
         result = prettify_result(
             safe_text(branch.result)
@@ -153,13 +135,12 @@ def generate_flowchart(logic_ir):
             )
 
         else:
-
-            # 이전 조건 실패 시 다음 조건
+            prev_false = safe_text(logic_ir.branches[i-1].false_label) or "NO"
             lines.append(
-                f"C{i-1} -->|{false_edge}| {cond_node}"
+                f"C{i-1} -->|{prev_false}| {cond_node}"
             )
 
-        # 성공 분기
+        # 참 분기 → 결과
         lines.append(
             f"{cond_node} -->|{true_edge}| {res_node}"
         )
@@ -174,27 +155,31 @@ def generate_flowchart(logic_ir):
             f"class {res_node} {result_class}"
         )
 
-    # 마지막 실패 → 정상 처리
+    # 마지막 거짓 분기 → END
     if logic_ir.branches:
 
         last_cond = f"C{len(logic_ir.branches)-1}"
+        last_false = safe_text(logic_ir.branches[-1].false_label) or "NO"
+
+        success_node = "SUCCESS"
 
         lines.append(
-            'SUCCESS["정상 처리"]'
+            f'{success_node}["정상 처리"]'
         )
 
         lines.append(
-            f"{last_cond} -->|NO| SUCCESS"
+            f"{last_cond} -->|No| {success_node}"
         )
 
         lines.append(
-            "SUCCESS --> END"
+            f"{success_node} --> END"
         )
 
         lines.append(
-            "class SUCCESS successNode"
+            f"{last_cond} -->|{last_false}| END"
         )
 
+    # 종료 노드
     lines.append("END([End])")
 
     # 스타일 정의
@@ -221,69 +206,34 @@ def generate_state_diagram(logic_ir):
 
     lines = ["stateDiagram-v2"]
 
-    # 시작 상태
-    lines.append("[*] --> 상태확인0")
+    lines.append("[*] --> Decision")
 
-    for i, branch in enumerate(logic_ir.branches):
+    added_states = set()
 
-        current_state = f"상태확인{i}"
+    for branch in logic_ir.branches:
 
-        next_state = (
-            f"상태확인{i+1}"
-            if i < len(logic_ir.branches) - 1
-            else "정상처리"
-        )
+        # 상태 다이어그램 레이블: "변수명 [참조건값]" 형태
+        cond_var = safe_text(branch.condition_var) if branch.condition_var else ""
+        true_lbl = safe_text(branch.true_label) or "YES"
+        condition_label = f"{cond_var} [{true_lbl}]" if cond_var else safe_text(branch.plain_meaning)
 
-        # 조건 이름
-        cond_var = (
-            safe_text(branch.condition_var)
-            if hasattr(branch, "condition_var") and branch.condition_var
-            else safe_text(branch.plain_meaning)
-        )
-
-        # 너무 긴 조건 줄바꿈
-        if len(cond_var) > 14:
-            cond_var = (
-                cond_var[:14]
-                + "\\n"
-                + cond_var[14:]
-            )
-
-        # 결과 상태
         result = prettify_result(
             safe_text(branch.result)
         )
 
         safe_result = result.replace(" ", "_")
 
-        # 현재 상태 정의
         lines.append(
-            f'state "{cond_var}" as {current_state}'
+            f"Decision --> {safe_result} : {condition_label}"
         )
 
-        # YES → 결과 상태
+        added_states.add(safe_result)
+
+    for state in added_states:
+
         lines.append(
-            f"{current_state} --> {safe_result} : YES"
+            f"{state} --> [*]"
         )
-
-        # NO → 다음 조건
-        lines.append(
-            f"{current_state} --> {next_state} : NO"
-        )
-
-        # 결과 종료
-        lines.append(
-            f"{safe_result} --> [*]"
-        )
-
-    # 마지막 정상 처리
-    lines.append(
-        'state "정상 처리" as 정상처리'
-    )
-
-    lines.append(
-        "정상처리 --> [*]"
-    )
 
     return "\n".join(lines)
 
