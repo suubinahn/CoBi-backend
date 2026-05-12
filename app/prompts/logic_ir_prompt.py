@@ -25,7 +25,9 @@ LOGIC_IR_SYSTEM_PROMPT = """
   사용자가 이해하기 쉬운 상태 이름 생성
   (예: "로그인 확인", "결제 확인")
 - branch.ui_message:
-  사용자에게 보여줄 메시지 생성
+  사용자에게 보여줄 한국어 메시지를 생성한다.
+  반드시 자연스러운 한국어 UI 문장으로 작성한다.
+  (예: "로그인이 필요합니다.", "결제 확인이 필요합니다.")
 - branch.severity:
   상태 중요도
   ("success", "warning", "error", "info")
@@ -89,7 +91,7 @@ def build_logic_ir_user_prompt(code: str, language: str) -> str:
       "result": "...",
       "plain_meaning": "...",
       "state_name": "사용자 친화적 상태 이름",
-      "ui_message": "...",
+      "ui_message": "로그인이 필요합니다.",
       "severity": "...",
       "transition_label": "...",
       "condition_var": "조건 대상 변수명 또는 상태명 (예: '사용자 ID', '주문금액', '재고')",
