@@ -91,6 +91,10 @@ def get_result_class(result: str):
     return "defaultNode"
 
 
+# =========================================================
+# FLOWCHART
+# =========================================================
+
 def generate_flowchart(logic_ir):
 
     lines = ["flowchart TD"]
@@ -107,7 +111,6 @@ def generate_flowchart(logic_ir):
         )
 
         true_edge = safe_text(branch.true_label) or "YES"
-        false_edge = safe_text(branch.false_label) or "NO"
 
         result = prettify_result(
             safe_text(branch.result)
@@ -133,7 +136,10 @@ def generate_flowchart(logic_ir):
             )
 
         else:
-            prev_false = safe_text(logic_ir.branches[i-1].false_label) or "NO"
+
+            prev_false = safe_text(
+                logic_ir.branches[i-1].false_label
+            ) or "NO"
 
             lines.append(
                 f"C{i-1} -->|{prev_false}| {cond_node}"
@@ -198,21 +204,30 @@ def generate_flowchart(logic_ir):
 
 
 # =========================================================
-# generate_state_diagram 전체 교체
+# [수정] STATE DIAGRAM
+# 기존 condition 중심 → 상태(state) 중심 구조로 변경
 # =========================================================
 
 def generate_state_diagram(logic_ir):
 
     lines = ["stateDiagram-v2"]
 
+    # =====================================================
     # 시작 상태
-    lines.append("[*] --> STEP_0")
+    # =====================================================
+
+    lines.append("[*] --> 시작")
+
+    current_state = "시작"
 
     for i, branch in enumerate(logic_ir.branches):
 
-        current_state = f"STEP_{i}"
+        # =================================================
+        # [수정] plain_meaning 기반 사용
+        # condition_var 대신 사용자 친화적 의미 사용
+        # =================================================
 
-        next_state = f"STEP_{i+1}"
+        meaning = safe_text(branch.plain_meaning)
 
         result = prettify_result(
             safe_text(branch.result)
@@ -220,53 +235,111 @@ def generate_state_diagram(logic_ir):
 
         safe_result = result.replace(" ", "_")
 
-        # 조건 이름 간결하게
-        condition_label = safe_text(
-            branch.condition_var
-            if branch.condition_var
-            else branch.plain_meaning
-        )
+        # =================================================
+        # [수정] 상태(state) 이름 생성
+        # =================================================
 
-        true_label = safe_text(branch.true_label) or "YES"
-        false_label = safe_text(branch.false_label) or "NO"
+        if "로그인" in meaning:
+            next_state = "로그인확인"
+
+        elif "금액" in meaning:
+            next_state = "금액검증"
+
+        elif "승인" in meaning:
+            next_state = "승인처리"
+
+        elif "재고" in meaning:
+            next_state = "재고확인"
+
+        elif "비밀번호" in meaning:
+            next_state = "비밀번호확인"
+
+        elif "인증" in meaning:
+            next_state = "추가인증"
+
+        else:
+            next_state = f"상태{i}"
 
         # =================================================
-        # 현재 단계 state 이름 추가
+        # [수정] 시작 → 첫 상태
+        # =================================================
+
+        if current_state == "시작":
+
+            lines.append(
+                f"시작 --> {next_state}"
+            )
+
+        # =================================================
+        # [수정] 실패 상태 연결
         # =================================================
 
         lines.append(
-            f'state "{condition_label}" as {current_state}'
+            f"{next_state} --> {safe_result} : 실패"
         )
 
-        # =================================================
-        # YES → 결과 상태
-        # =================================================
-
-        lines.append(
-            f'{current_state} --> {safe_result} : {true_label}'
-        )
-
-        # 결과 종료
         lines.append(
             f"{safe_result} --> [*]"
         )
 
         # =================================================
-        # 마지막 분기인지 체크
+        # [수정] 다음 단계 상태 흐름
         # =================================================
 
         if i < len(logic_ir.branches) - 1:
 
-            # NO → 다음 단계
-            lines.append(
-                f'{current_state} --> {next_state} : {false_label}'
+            next_flow_state = f"FLOW_{i}"
+
+            next_branch = logic_ir.branches[i + 1]
+
+            next_meaning = safe_text(
+                next_branch.plain_meaning
             )
+
+            # =============================================
+            # 다음 상태 transition label
+            # =============================================
+
+            if "로그인" in next_meaning:
+                flow_label = "로그인 성공"
+
+            elif "금액" in next_meaning:
+                flow_label = "금액 확인"
+
+            elif "승인" in next_meaning:
+                flow_label = "승인 필요"
+
+            elif "재고" in next_meaning:
+                flow_label = "재고 있음"
+
+            elif "인증" in next_meaning:
+                flow_label = "인증 진행"
+
+            else:
+                flow_label = "다음 단계"
+
+            # =============================================
+            # 상태 이동
+            # =============================================
+
+            lines.append(
+                f"{next_state} --> {next_flow_state} : 성공"
+            )
+
+            lines.append(
+                f'{next_flow_state} : {flow_label}'
+            )
+
+            current_state = next_flow_state
 
         else:
 
-            # 마지막 NO → 정상 처리
+            # =============================================
+            # 마지막 정상 처리
+            # =============================================
+
             lines.append(
-                f'{current_state} --> 정상처리 : {false_label}'
+                f"{next_state} --> 정상처리 : 성공"
             )
 
             lines.append(
@@ -275,6 +348,10 @@ def generate_state_diagram(logic_ir):
 
     return "\n".join(lines)
 
+
+# =========================================================
+# VISUALIZATION EXPORT
+# =========================================================
 
 def generate_visualizations(logic_ir):
 
