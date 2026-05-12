@@ -132,7 +132,10 @@ async def generate_logic_ir(code: str, language: str) -> LogicIR:
             return logic_ir
 
         except Exception as e:
-            print(f"JSON 파싱 실패 (시도 {attempt+1}):", response)
+            print(f"\n=== LOGIC IR ERROR (시도 {attempt+1}) ===")
+            print("RAW RESPONSE:\n", response)
+            print("CLEANED RESPONSE:\n", cleaned if 'cleaned' in locals() else "없음")
+            print("ERROR:\n", repr(e))
 
             if attempt == 1:
                 raise ValueError("Logic IR 생성 실패 (JSON 파싱 오류)") from e
