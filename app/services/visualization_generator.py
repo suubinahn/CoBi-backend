@@ -42,6 +42,15 @@ def prettify_result(raw_result: str) -> str:
     elif "out of stock" in raw_result:
         return "재고 부족"
 
+    elif "soldout" in raw_result:
+        return "재고 부족"
+
+    elif "insufficient balance" in raw_result:
+        return "잔액 부족"
+
+    elif "verification" in raw_result:
+        return "추가 인증"
+
     elif "error" in raw_result:
         return "오류"
 
@@ -66,13 +75,15 @@ def get_result_class(result: str) -> str:
 
     elif result in [
         "승인 대기",
-        "대기"
+        "대기",
+        "추가 인증"
     ]:
         return "pendingNode"
 
     elif result in [
         "주문 완료",
         "재고 부족",
+        "잔액 부족",
         "결과"
     ]:
         return "successNode"
@@ -84,7 +95,8 @@ def generate_flowchart(logic_ir):
 
     lines = ["flowchart TD"]
 
-    lines.append("START([START])")
+    # 시작 노드
+    lines.append("START([Start])")
 
     for i, branch in enumerate(logic_ir.branches):
 
@@ -117,6 +129,7 @@ def generate_flowchart(logic_ir):
 
         # 시작 연결
         if i == 0:
+
             lines.append(
                 f"START --> {cond_node}"
             )
@@ -148,11 +161,26 @@ def generate_flowchart(logic_ir):
         last_cond = f"C{len(logic_ir.branches)-1}"
         last_false = safe_text(logic_ir.branches[-1].false_label) or "NO"
 
+        success_node = "SUCCESS"
+
+        lines.append(
+            f'{success_node}["정상 처리"]'
+        )
+
+        lines.append(
+            f"{last_cond} -->|No| {success_node}"
+        )
+
+        lines.append(
+            f"{success_node} --> END"
+        )
+
         lines.append(
             f"{last_cond} -->|{last_false}| END"
         )
 
-    lines.append("END([END])")
+    # 종료 노드
+    lines.append("END([End])")
 
     # 스타일 정의
     lines.append(
@@ -193,10 +221,8 @@ def generate_state_diagram(logic_ir):
             safe_text(branch.result)
         )
 
-        # Mermaid state safe 처리
         safe_result = result.replace(" ", "_")
 
-        # 상태 전이
         lines.append(
             f"Decision --> {safe_result} : {condition_label}"
         )
