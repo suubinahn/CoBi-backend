@@ -42,6 +42,15 @@ def prettify_result(raw_result: str) -> str:
     elif "out of stock" in raw_result:
         return "재고 부족"
 
+    elif "soldout" in raw_result:
+        return "재고 부족"
+
+    elif "insufficient balance" in raw_result:
+        return "잔액 부족"
+
+    elif "verification" in raw_result:
+        return "추가 인증"
+
     elif "error" in raw_result:
         return "오류"
 
@@ -66,13 +75,15 @@ def get_result_class(result: str) -> str:
 
     elif result in [
         "승인 대기",
-        "대기"
+        "대기",
+        "추가 인증"
     ]:
         return "pendingNode"
 
     elif result in [
         "주문 완료",
         "재고 부족",
+        "잔액 부족",
         "결과"
     ]:
         return "successNode"
@@ -84,17 +95,24 @@ def generate_flowchart(logic_ir):
 
     lines = ["flowchart TD"]
 
-    lines.append("START([START])")
+    # 시작 노드
+    lines.append("START([Start])")
 
     for i, branch in enumerate(logic_ir.branches):
 
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
+        # 사용자 친화적 조건 설명
         condition = safe_text(
             branch.plain_meaning
         )
 
+        # 너무 긴 조건 줄바꿈
+        if len(condition) > 18:
+            condition = condition[:18] + "<br/>" + condition[18:]
+
+        # 결과 상태
         result = prettify_result(
             safe_text(branch.result)
         )
@@ -113,16 +131,21 @@ def generate_flowchart(logic_ir):
 
         # 시작 연결
         if i == 0:
+
             lines.append(
                 f"START --> {cond_node}"
             )
 
         else:
+
+            # 이전 조건의 No → 다음 조건
+            prev_cond = f"C{i-1}"
+
             lines.append(
-                f"C{i-1} -->|No| {cond_node}"
+                f"{prev_cond} -->|No| {cond_node}"
             )
 
-        # Yes 분기
+        # 현재 조건 Yes → 결과
         lines.append(
             f"{cond_node} -->|Yes| {res_node}"
         )
@@ -137,16 +160,31 @@ def generate_flowchart(logic_ir):
             f"class {res_node} {result_class}"
         )
 
-    # 마지막 No → END
+    # 마지막 조건의 No → 성공 처리
     if logic_ir.branches:
 
         last_cond = f"C{len(logic_ir.branches)-1}"
 
+        success_node = "SUCCESS"
+
         lines.append(
-            f"{last_cond} -->|No| END"
+            f'{success_node}["정상 처리"]'
         )
 
-    lines.append("END([END])")
+        lines.append(
+            f"{last_cond} -->|No| {success_node}"
+        )
+
+        lines.append(
+            f"{success_node} --> END"
+        )
+
+        lines.append(
+            f"class {success_node} successNode"
+        )
+
+    # 종료 노드
+    lines.append("END([End])")
 
     # 스타일 정의
     lines.append(
@@ -186,10 +224,8 @@ def generate_state_diagram(logic_ir):
             safe_text(branch.result)
         )
 
-        # Mermaid state safe 처리
         safe_result = result.replace(" ", "_")
 
-        # 상태 전이
         lines.append(
             f"Decision --> {safe_result} : {condition}"
         )
