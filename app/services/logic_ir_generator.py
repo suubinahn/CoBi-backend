@@ -103,6 +103,9 @@ async def generate_logic_ir(code: str, language: str) -> LogicIR:
             cleaned = clean_json(response)
             data = json.loads(cleaned)
 
+            print("\n=== LOGIC IR RAW JSON ===")
+            print(json.dumps(data, ensure_ascii=False, indent=2))
+
             # 1. 객체 생성
             logic_ir = LogicIR(**data)
 
