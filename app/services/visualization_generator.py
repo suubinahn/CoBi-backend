@@ -1,6 +1,7 @@
 def safe_text(text: str) -> str:
     if not text:
         return ""
+
     return (
         str(text)
         .replace('"', "'")
@@ -13,90 +14,172 @@ def safe_text(text: str) -> str:
 def prettify_result(raw_result: str) -> str:
     raw_result = raw_result.lower()
 
-    if "error" in raw_result:
-        return "오류"
-    elif "pending" in raw_result:
+    if "login required" in raw_result:
+        return "로그인 필요"
+
+    elif "invalid amount" in raw_result:
+        return "잘못된 금액"
+
+    elif "approval required" in raw_result:
         return "승인 대기"
+
     elif "success" in raw_result:
-        return "완료"
-    elif "soldout" in raw_result:
-        return "재고 부족"
+        return "주문 완료"
+
+    elif "password mismatch" in raw_result:
+        return "비밀번호 불일치"
+
+    elif "cannot be deleted" in raw_result:
+        return "삭제 불가"
+
+    elif "user not found" in raw_result:
+        return "사용자 없음"
+
+    elif "error" in raw_result:
+        return "오류"
+
+    elif "pending" in raw_result:
+        return "대기"
 
     return "결과"
 
 
+def get_result_class(result: str) -> str:
+
+    if result in ["로그인 필요", "잘못된 금액", "오류", "비밀번호 불일치", "삭제 불가", "사용자 없음"]:
+        return "errorNode"
+
+    elif result in ["승인 대기", "대기"]:
+        return "pendingNode"
+
+    elif result in ["주문 완료"]:
+        return "successNode"
+
+    return "defaultNode"
+
+
 def generate_flowchart(logic_ir):
+
     lines = ["flowchart TD"]
+
     lines.append("START([START])")
 
     for i, branch in enumerate(logic_ir.branches):
+
         cond_node = f"C{i}"
         res_node = f"R{i}"
 
-        # 사용자 친화적 조건 설명 사용
+        # 사용자 친화적 조건 설명
         condition = safe_text(branch.plain_meaning)
 
-        # 상태 결과 한글화
+        # 결과 상태 한글화
         result = prettify_result(
             safe_text(branch.result)
         )
 
-        lines.append(f"{cond_node}{{{condition}}}")
-        lines.append(f"{res_node}[{result}]")
+        result_class = get_result_class(result)
 
+        # 조건 노드
+        lines.append(
+            f'{cond_node}{{"{condition}"}}'
+        )
+
+        # 결과 노드
+        lines.append(
+            f'{res_node}["{result}"]'
+        )
+
+        # 흐름 연결
         if i == 0:
             lines.append(f"START --> {cond_node}")
         else:
-            lines.append(f"R{i-1} --> {cond_node}")
+            lines.append(
+                f"C{i-1} -->|False| {cond_node}"
+            )
 
-        lines.append(f"{cond_node} -->|True| {res_node}")
+        # True 분기
+        lines.append(
+            f"{cond_node} -->|True| {res_node}"
+        )
+
+        # 결과 → END
+        lines.append(
+            f"{res_node} --> END"
+        )
+
+        # 스타일 적용
+        lines.append(
+            f"class {res_node} {result_class}"
+        )
+
+    # 마지막 False → END
+    if logic_ir.branches:
+        last_cond = f"C{len(logic_ir.branches)-1}"
+        lines.append(
+            f"{last_cond} -->|False| END"
+        )
 
     lines.append("END([END])")
 
-    if logic_ir.branches:
-        last_res = f"R{len(logic_ir.branches)-1}"
-        lines.append(f"{last_res} --> END")
-    else:
-        lines.append("START --> END")
+    # Mermaid 스타일 정의
+    lines.append(
+        "classDef errorNode fill:#7f1d1d,stroke:#f87171,color:#ffffff,stroke-width:2px"
+    )
+
+    lines.append(
+        "classDef pendingNode fill:#78350f,stroke:#fbbf24,color:#ffffff,stroke-width:2px"
+    )
+
+    lines.append(
+        "classDef successNode fill:#064e3b,stroke:#34d399,color:#ffffff,stroke-width:2px"
+    )
+
+    lines.append(
+        "classDef defaultNode fill:#27272a,stroke:#a1a1aa,color:#ffffff"
+    )
 
     return "\n".join(lines)
 
 
 def generate_state_diagram(logic_ir):
+
     lines = ["stateDiagram-v2"]
+
     lines.append("[*] --> Decision")
 
     added_states = set()
 
     for branch in logic_ir.branches:
 
-        # 사용자 친화적 조건 설명 사용
-        condition = safe_text(branch.plain_meaning)
+        condition = safe_text(
+            branch.plain_meaning
+        )
 
-        # 상태 결과 한글화
         result = prettify_result(
             safe_text(branch.result)
         )
 
         lines.append(
-            f"Decision --> {result} : {condition}"
+            f'Decision --> "{result}" : {condition}'
         )
 
         added_states.add(result)
 
     for state in added_states:
-        lines.append(f"{state} --> [*]")
+        lines.append(f'"{state}" --> [*]')
 
     return "\n".join(lines)
 
 
 def generate_visualizations(logic_ir):
+
     return {
         "flowchart": {
             "title": "조건 분기 흐름도",
             "type": "flowchart",
             "mermaid": generate_flowchart(logic_ir)
         },
+
         "state_diagram": {
             "title": "UI 상태 전이도",
             "type": "stateDiagram",
