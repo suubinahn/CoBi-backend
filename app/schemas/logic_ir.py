@@ -19,6 +19,9 @@ class Branch(BaseModel):
     condition: str
     result: Any
     plain_meaning: str
+    condition_var: str = ""   # 조건 변수명 (e.g., "사용자 ID")
+    true_label: str = "YES"   # 조건 참일 때 엣지 레이블 (e.g., "없음", "0이하")
+    false_label: str = "NO"   # 조건 거짓일 때 엣지 레이블 (e.g., "있음", "0초과")
 
     @field_validator("result", mode="before")
     @classmethod
