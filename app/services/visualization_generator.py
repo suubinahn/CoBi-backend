@@ -44,15 +44,23 @@ def generate_flowchart(logic_ir):
 
 
 def generate_state_diagram(logic_ir):
-    # state 없으면 기본 다이어그램
-    if not logic_ir.states:
-        return "stateDiagram-v2\n[*] --> Idle"
-
     lines = ["stateDiagram-v2"]
+    lines.append("[*] --> Decision")
 
-    # 첫 번째 state만 시작점으로 연결
-    first_state = logic_ir.states[0].name
-    lines.append(f"[*] --> {first_state}")
+    added_states = set()
+
+    for branch in logic_ir.branches:
+        condition = safe_text(branch.condition)
+        result = safe_text(branch.result).capitalize()
+
+        lines.append(
+            f"Decision --> {result} : {condition}"
+        )
+
+        added_states.add(result)
+
+    for state in added_states:
+        lines.append(f"{state} --> [*]")
 
     return "\n".join(lines)
 
