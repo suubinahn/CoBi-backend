@@ -19,10 +19,10 @@ class Branch(BaseModel):
     condition: str
     result: Any
     plain_meaning: str
-    state_name: str = ""
-    ui_message: str = ""
-    severity: str = "info"
-    transition_label: str = "다음"
+    state_name: str
+    ui_message: str
+    severity: str
+    transition_label: str
     condition_var: str = ""   # 조건 변수명 (e.g., "사용자 ID")
     true_label: str = "YES"   # 조건 참일 때 엣지 레이블 (e.g., "없음", "0이하")
     false_label: str = "NO"   # 조건 거짓일 때 엣지 레이블 (e.g., "있음", "0초과")

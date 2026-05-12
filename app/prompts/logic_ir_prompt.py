@@ -91,7 +91,7 @@ def build_logic_ir_user_prompt(code: str, language: str) -> str:
       "state_name": "사용자 친화적 상태 이름",
       "ui_message": "...",
       "severity": "...",
-      "transition_label": "..."
+      "transition_label": "...",
       "condition_var": "조건 대상 변수명 또는 상태명 (예: '사용자 ID', '주문금액', '재고')",
       "true_label": "조건이 참일 때의 값/상태 표현 (예: '없음', '0이하', '부족', '미로그인')",
       "false_label": "조건이 거짓일 때의 값/상태 표현 (예: '있음', '0초과', '충분', '로그인됨')"
