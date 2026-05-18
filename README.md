@@ -1,4 +1,7 @@
 ## 👩‍💻 담당 역할 (My Contribution)
+
+본 프로젝트는 2인 팀 프로젝트로 진행되었으며, 저는 **백엔드 개발 파트**를 담당했습니다.
+
 <img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-0" src="https://github.com/user-attachments/assets/b7e1507a-d9b7-42df-9d5c-6c6e3e3dee76" />
 <img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-1" src="https://github.com/user-attachments/assets/543ca88b-8289-4207-aaf0-b895f42b58ff" />
 <img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-2" src="https://github.com/user-attachments/assets/964bc256-c059-47d1-aa67-9b9409bcc925" />
