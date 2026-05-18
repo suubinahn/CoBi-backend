@@ -1,5 +1,5 @@
 ## 👩‍💻 담당 역할 (My Contribution)
-![CoBi_Backend](https://github.com/user-attachments/assets/f4230cb9-5c7e-4fb0-ba47-51a1c0501544)
+[CoBi_Backend.pdf](https://github.com/user-attachments/files/27962930/CoBi_Backend.pdf)
 
 ---
 
