@@ -1,5 +1,10 @@
 ## 👩‍💻 담당 역할 (My Contribution)
-[CoBi_Backend.pdf](https://github.com/user-attachments/files/27962930/CoBi_Backend.pdf)
+<img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-5" src="https://github.com/user-attachments/assets/212f7614-7d48-44bf-a012-b2942096c8de" />
+<img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-4" src="https://github.com/user-attachments/assets/6c78e71f-c6da-423b-8f99-f8827948be57" />
+<img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-3" src="https://github.com/user-attachments/assets/ba1b9aa2-6514-4bac-8f9c-cbabb50b3b5f" />
+<img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-2" src="https://github.com/user-attachments/assets/b4e9014d-6d7b-42ab-8ead-9d700b362907" />
+<img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-1" src="https://github.com/user-attachments/assets/5c69bf4e-1e66-44cf-a954-2e91d97d233c" />
+<img width="4000" height="2250" alt="4a185c48e50c48a0ec8e27b649556556K22w4hmNhetb0mLe-0" src="https://github.com/user-attachments/assets/50c91afa-b562-4733-88cb-c3a322b58a87" />
 
 ---
 
