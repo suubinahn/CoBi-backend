@@ -1,3 +1,8 @@
+## 👩‍💻 담당 역할 (My Contribution)
+![CoBi_Backend](https://github.com/user-attachments/assets/f4230cb9-5c7e-4fb0-ba47-51a1c0501544)
+
+---
+
 # CoBi Backend
 
 코드를 분석하여 Logic IR, Mermaid 기반 시각화(flowchart/stateDiagram),
